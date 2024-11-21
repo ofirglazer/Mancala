@@ -3,6 +3,7 @@ class Board:
         # 6 pits per player (each with 4 stones initially), and 2 stores (Mancalas) for players.
         self.pits = [[4] * 6, [4] * 6]  # 2 players, 6 pits each
         self.stores = [0, 0]  # Two stores, one for each player
+        self.turn = 0  # Player 0's turn starts first
 
     def draw(self):
         print("   ", end="")
@@ -14,33 +15,60 @@ class Board:
             print(str(self.pits[0][i]).rjust(2, ' '), end=" ")
         print("\n")
 
-    def is_valid_move(self, player, pit_index):
+    def switch_turn(self):
+        # Switch turns between players
+        self.turn = 1 - self.turn
+
+
+    def is_valid_move(self, pit_index):
         # Checks if the pit chosen by the player is valid (i.e., it must contain stones)
-        if self.pits[player][pit_index] > 0:
+        if self.pits[self.turn][pit_index] > 0:
             return True
         return False
 
-    def sow(self, player, pit_index):
+    def sow(self, pit_index):
         # Perform the sowing operation from a selected pit
+        current_player = self.turn
+        player = current_player
         stones = self.pits[player][pit_index]
         self.pits[player][pit_index] = 0  # Empty the selected pit
-        current_player = player
 
         while stones > 0:
             pit_index = (pit_index + 1) % 6  # Move to the next pit
             if pit_index == 0:  # arriving at player's store
                 if player == current_player: #  award stone to store
                     self.stores[player] += 1
-                    stones -= 1
-                player = 1 - player
-            self.pits[player][pit_index] += 1
+                    pit_index -= 1  # next stone will advance to 0 in other side
+                    player = 1 - player
+                else:
+                    self.pits[player][pit_index] += 1
+            else:
+                self.pits[player][pit_index] += 1
             stones -= 1
+
+        # take opponent stones if land on empty
+        if player == current_player and self.pits[player][pit_index] == 1:
+            self.stores[player] += self.pits[1-player][5 - pit_index] + 1
+            self.pits[1 - player][5 - pit_index] = 0
+            self.pits[player][pit_index] = 0
+
+        # switch player except when finish in own store
+        if not (player != current_player and pit_index == -1):  # already switched player when sowing
+            self.switch_turn()
 
     def check_game_over(self):
         # Game is over if one player has no stones left in their pits
-        if sum(self.pits[0]) == 0 or sum(self.pits[1]) == 0:
-            return True
-        return False
+        if sum(self.pits[0]) == 0:
+            empty_side = 0
+        elif sum(self.pits[1]) == 0:
+            empty_side = 1
+        else:
+            return False
+
+        for i in range(0, 6):
+            self.stores[empty_side] += self.pits[1 - empty_side][i]
+            self.pits[1 - empty_side] = 0
+        return True
 
     def get_board_state(self):
         # Returns the current state of the board, useful for displaying to the user
@@ -56,23 +84,17 @@ class Game:
     def __init__(self):
         self.board = Board()
         self.players = ["Player 1", "Player 2"]
-        self.turn = 0  # Player 0's turn starts first
 
-    def switch_turn(self):
-        # Switch turns between players
-        self.turn = 1 - self.turn
 
     def play_move(self, pit_index):
         # First, check if the move is valid
-        if not self.board.is_valid_move(self.turn, pit_index):
-            print(f"Invalid move for {self.players[self.turn]}. Try again.")
+        if not self.board.is_valid_move(pit_index):
+            print(f"Invalid move for {self.players[self.board.turn]}. Try again.")
             return False
         # Then perform the move
-        self.board.sow(self.turn, pit_index)
+        self.board.sow(pit_index)
         if self.board.check_game_over():
             return True  # Game Over
-        # Switch turns after a valid move
-        self.switch_turn()
         return False
 
     def get_winner(self):
@@ -92,7 +114,7 @@ class Game:
             # print(f"Player 2: {board_state['player_2_store']} | {board_state['player_2_pits']}")
             self.board.draw()
 
-            current_player = self.players[self.turn]
+            current_player = self.players[self.board.turn]
             print(f"{current_player}'s turn")
 
             # Prompt player for a move
