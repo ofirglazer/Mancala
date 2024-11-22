@@ -19,7 +19,6 @@ class Board:
         # Switch turns between players
         self.turn = 1 - self.turn
 
-
     def is_valid_move(self, pit_index):
         # Checks if the pit chosen by the player is valid (i.e., it must contain stones)
         if self.pits[self.turn][pit_index] > 0:
@@ -28,32 +27,41 @@ class Board:
 
     def sow(self, pit_index):
         # Perform the sowing operation from a selected pit
-        current_player = self.turn
-        player = current_player
-        stones = self.pits[player][pit_index]
-        self.pits[player][pit_index] = 0  # Empty the selected pit
 
+        # 1. removes stones from selected pit
+        current_player = self.turn
+        side = current_player
+        stones = self.pits[side][pit_index]
+        self.pits[side][pit_index] = 0  # Empty the selected pit
+
+        # 2. put stones in next pits
         while stones > 0:
+            finish_in_store = False
             pit_index = (pit_index + 1) % 6  # Move to the next pit
-            if pit_index == 0:  # arriving at player's store
-                if player == current_player: #  award stone to store
-                    self.stores[player] += 1
-                    pit_index -= 1  # next stone will advance to 0 in other side
-                    player = 1 - player
+
+            # handling stores during sow
+            if pit_index == 0:  # arriving at a store
+                if side == current_player:  # player's store
+                    self.stores[side] += 1
+                    stones -= 1
+
+                if stones == 0:  # the stone in the store was the last
+                    finish_in_store = True
+                    break
                 else:
-                    self.pits[player][pit_index] += 1
-            else:
-                self.pits[player][pit_index] += 1
+                    side = 1 - side  # switch to other side after store
+
+            self.pits[side][pit_index] += 1
             stones -= 1
 
-        # take opponent stones if land on empty
-        if player == current_player and self.pits[player][pit_index] == 1:
-            self.stores[player] += self.pits[1-player][5 - pit_index] + 1
-            self.pits[1 - player][5 - pit_index] = 0
-            self.pits[player][pit_index] = 0
+        # 3. take opponent stones if land on empty in own side
+        if side == current_player and self.pits[side][pit_index] == 1 and not finish_in_store:  # last stone was put in empty pit
+            self.stores[current_player] += self.pits[1-side][5 - pit_index] + 1  # opposite stones + last own stone
+            self.pits[1 - side][5 - pit_index] = 0
+            self.pits[side][pit_index] = 0
 
-        # switch player except when finish in own store
-        if not (player != current_player and pit_index == -1):  # already switched player when sowing
+        # 4. switch player except when finish in own store
+        if not finish_in_store:  # finished sowing in own store
             self.switch_turn()
 
     def check_game_over(self):
@@ -67,7 +75,7 @@ class Board:
 
         for i in range(0, 6):
             self.stores[empty_side] += self.pits[1 - empty_side][i]
-            self.pits[1 - empty_side] = 0
+            self.pits[1 - empty_side][i] = 0
         return True
 
     def get_board_state(self):
@@ -84,7 +92,6 @@ class Game:
     def __init__(self):
         self.board = Board()
         self.players = ["Player 1", "Player 2"]
-
 
     def play_move(self, pit_index):
         # First, check if the move is valid
@@ -109,7 +116,7 @@ class Game:
     def play_game(self):
         while True:
             # Display current board state
-            board_state = self.board.get_board_state()
+            # board_state = self.board.get_board_state()
             # print(f"Player 1: {board_state['player_1_store']} | {board_state['player_1_pits']}")
             # print(f"Player 2: {board_state['player_2_store']} | {board_state['player_2_pits']}")
             self.board.draw()
@@ -128,8 +135,6 @@ class Game:
                     break
             except ValueError:
                 print("Invalid input. Please enter an integer between 1 and 6.")
-
-
 
 
 """
@@ -196,14 +201,12 @@ def update_game_state(pit_index):
 """
 
 
-
-
-
-
 def main():
     game = Game()
     # TODO draw pit positions
     game.play_game()
+
+
 """
     # global board
     # draw pit positions
