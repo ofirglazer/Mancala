@@ -107,19 +107,20 @@ class Game:
     def get_winner(self):
         # Calculate the total number of stones in each player's store
         if self.board.stores[0] > self.board.stores[1]:
-            return "Player 1 wins!"
+            return "Player 1 wins! {self.board.stores[0]}:{self.board.stores[1]}"
         elif self.board.stores[0] < self.board.stores[1]:
-            return "Player 2 wins!"
+            return f"Player 2 wins! {self.board.stores[0]}:{self.board.stores[1]}"
         else:
             return "It's a tie!"
 
-    def play_game(self):
+    def play_game(self, to_draw=False):
         while True:
             # Display current board state
             # board_state = self.board.get_board_state()
             # print(f"Player 1: {board_state['player_1_store']} | {board_state['player_1_pits']}")
             # print(f"Player 2: {board_state['player_2_store']} | {board_state['player_2_pits']}")
-            self.board.draw()
+            if to_draw:
+                self.board.draw()
 
             current_player = self.players[self.board.turn]
             print(f"{current_player}'s turn")
@@ -138,9 +139,10 @@ class Game:
 
 
 def main():
+    to_draw = True
     game = Game()
     # TODO draw pit positions
-    game.play_game()
+    game.play_game(to_draw)
 
 """
     # draw pit positions
