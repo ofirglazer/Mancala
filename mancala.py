@@ -1,21 +1,23 @@
+STORE = 6  # pointer of store pit
 class Board:
     def __init__(self):
         # 6 pits per player (each with 4 stones initially), and 2 stores (Mancalas) for players.
         self.pits = [[4] * 6, [4] * 6]  # 2 players, 6 pits each
-        self.stores = [0, 0]  # Two stores, one for each player
+        self.pits[0].append(0)   # player 0 store
+        self.pits[1].append(0)   # player 0 store
         self.turn = 0  # Player 0's turn starts first
 
     def draw(self):
         print("   ", end="")
         for i in range(5, -1, -1):
             print(str(self.pits[1][i]).rjust(2, ' '), end=" ")
-        print("\n", self.stores[1], "                 ", self.stores[0])
+        print("\n", self.pits[1][STORE], "                 ", self.pits[0][STORE])
         print("   ", end="")
         for i in range(0, 6):
             print(str(self.pits[0][i]).rjust(2, ' '), end=" ")
         print("\n")
 
-    def switch_turn(self):
+    def switch_turns(self):
         # Switch turns between players
         self.turn = 1 - self.turn
 
@@ -37,55 +39,58 @@ class Board:
         # 2. put stones in next pits
         while stones > 0:
             finish_in_store = False
-            pit_index = (pit_index + 1) % 6  # Move to the next pit
+            pit_index = (pit_index + 1) % 7  # Move to the next pit
+            if pit_index == 0:
+                side = 1 - side  # switch to other side after roll over to pit 0
 
             # handling stores during sow
-            if pit_index == 0:  # arriving at a store
+            if pit_index == STORE:  # arriving at a store
                 if side == current_player:  # player's store
-                    self.stores[side] += 1
+                    self.pits[side][STORE] += 1
                     stones -= 1
 
-                if stones == 0:  # the stone in the store was the last
-                    finish_in_store = True
-                    break
-                else:
-                    side = 1 - side  # switch to other side after store
-
-            self.pits[side][pit_index] += 1
-            stones -= 1
+                    if stones == 0:         # the stone in own store was the last
+                        finish_in_store = True
+                        break
+            else:                   # regular 0-5 pit
+                self.pits[side][pit_index] += 1
+                stones -= 1
 
         # 3. take opponent stones if land on empty in own side
         if side == current_player and self.pits[side][pit_index] == 1 and not finish_in_store:  # last stone was put in empty pit
-            self.stores[current_player] += self.pits[1-side][5 - pit_index] + 1  # opposite stones + last own stone
+            self.pits[side][STORE] += self.pits[1-side][5 - pit_index] + 1  # opposite stones + last own stone
             self.pits[1 - side][5 - pit_index] = 0
             self.pits[side][pit_index] = 0
 
         # 4. switch player except when finish in own store
         if not finish_in_store:  # finished sowing in own store
-            self.switch_turn()
+            self.switch_turns()
 
     def check_game_over(self):
         # Game is over if one player has no stones left in their pits
-        if sum(self.pits[0]) == 0:
+        if sum(self.pits[0][1:STORE]) == 0:
             empty_side = 0
-        elif sum(self.pits[1]) == 0:
+        elif sum(self.pits[1][1:STORE]) == 0:
             empty_side = 1
         else:
             return False
 
-        for i in range(0, 6):
-            self.stores[empty_side] += self.pits[1 - empty_side][i]
+        for i in range(STORE):
+            self.pits[empty_side][STORE] += self.pits[1 - empty_side][i]
             self.pits[1 - empty_side][i] = 0
         return True
 
     def get_board_state(self):
-        # Returns the current state of the board, useful for displaying to the user
-        return {
-            "player_1_pits": self.pits[0],
-            "player_2_pits": self.pits[1],
-            "player_1_store": self.stores[0],
-            "player_2_store": self.stores[1]
-        }
+        # Returns the current state of the board, useful for AI
+        return list([*self.pits[0], *self.pits[1], self.turn == 0])
+
+        # # Returns the current state of the board, useful for displaying to the user
+        # return {
+        #     "player_1_pits": self.pits[0],
+        #     "player_2_pits": self.pits[1],
+        #     "player_1_store": self.stores[0],
+        #     "player_2_store": self.stores[1]
+        # }
 
 
 class Game:
@@ -106,12 +111,13 @@ class Game:
 
     def get_winner(self):
         # Calculate the total number of stones in each player's store
-        if self.board.stores[0] > self.board.stores[1]:
-            return "Player 1 wins! {self.board.stores[0]}:{self.board.stores[1]}"
-        elif self.board.stores[0] < self.board.stores[1]:
-            return f"Player 2 wins! {self.board.stores[0]}:{self.board.stores[1]}"
+        state = self.board.get_board_state()
+        if state[STORE] > state[2*STORE + 1]:
+            return f"Player 1 wins! {state[STORE]}:{state[2*STORE + 1]}"
+        elif state[STORE] < state[2*STORE + 1]:
+            return f"Player 2 wins! {state[STORE]}:{state[2*STORE + 1]}"
         else:
-            return "It's a tie!"
+            return f"It's a tie! {state[STORE]}:{state[2*STORE + 1]}"
 
     def play_game(self, to_draw=False):
         while True:
