@@ -158,7 +158,7 @@ class Game:
             if self.play_move(pit_index):
                 print("Game Over!")
                 print(self.get_winner())
-                break
+                return self.board.get_board_state()
 
 
 def main():
