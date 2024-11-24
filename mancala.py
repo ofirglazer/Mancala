@@ -107,11 +107,22 @@ class Board:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, player0='human', player1='random'):
         self.board = Board()
-        self.players = ["Player 1", "Player 2"]
-        # self.player = player_human.Player()
-        self.player = player_random.Player()
+        self.players = []
+        if player0 == 'human':
+            self.players.append(player_human.Player())
+        elif player0 == 'random':
+            self.players.append(player_random.Player())
+        else:
+            raise Exception('Incorrect player0 type')
+        if player1 == 'human':
+            self.players.append(player_human.Player())
+        elif player1 == 'random':
+            self.players.append(player_random.Player())
+        else:
+            raise Exception('Incorrect player1 type')
+
 
     def play_move(self, pit_index):
         # First, check if the move is valid
@@ -140,10 +151,10 @@ class Game:
                 self.board.draw()
 
             current_player = self.players[self.board.turn]
-            print(f"{current_player}'s turn")
+            print(f"Player {self.board.turn + 1} turn [{current_player.name}]")
 
-            # Prompt player for a move
-            pit_index = self.player.act(self.board)
+            # Get move from player
+            pit_index = current_player.act(self.board)
             if self.play_move(pit_index):
                 print("Game Over!")
                 print(self.get_winner())
@@ -152,8 +163,7 @@ class Game:
 
 def main():
     to_draw = True
-    game = Game()
-    # TODO draw pit positions
+    game = Game('random', 'random')
     game.play_game(to_draw)
 
 
