@@ -1,3 +1,5 @@
+import player_human
+
 STORE = 6  # pointer of store pit
 class Board:
     def __init__(self):
@@ -97,6 +99,7 @@ class Game:
     def __init__(self):
         self.board = Board()
         self.players = ["Player 1", "Player 2"]
+        self.player = player_human.Human()
 
     def play_move(self, pit_index):
         # First, check if the move is valid
@@ -121,10 +124,6 @@ class Game:
 
     def play_game(self, to_draw=False):
         while True:
-            # Display current board state
-            # board_state = self.board.get_board_state()
-            # print(f"Player 1: {board_state['player_1_store']} | {board_state['player_1_pits']}")
-            # print(f"Player 2: {board_state['player_2_store']} | {board_state['player_2_pits']}")
             if to_draw:
                 self.board.draw()
 
@@ -132,16 +131,11 @@ class Game:
             print(f"{current_player}'s turn")
 
             # Prompt player for a move
-            try:
-                pit_index = int(input(f"Choose a pit (1-6) to sow for {current_player}: ")) - 1
-                if not 0 <= pit_index < 6:
-                    raise ValueError("Invalid pit number.")
-                if self.play_move(pit_index):
-                    print("Game Over!")
-                    print(self.get_winner())
-                    break
-            except ValueError:
-                print("Invalid input. Please enter an integer between 1 and 6.")
+            pit_index = self.player.act(self.board)
+            if self.play_move(pit_index):
+                print("Game Over!")
+                print(self.get_winner())
+                break
 
 
 def main():
@@ -150,14 +144,6 @@ def main():
     # TODO draw pit positions
     game.play_game(to_draw)
 
-"""
-    # draw pit positions
-    for i in range(1,15):
-        board[i-1] = i
-    print("Pit numbering:")
-    draw_board()
-    print("")
-"""
 
 if __name__ == '__main__':
     main()
