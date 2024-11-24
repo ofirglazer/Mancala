@@ -1,6 +1,9 @@
 import player_human
+import player_random
 
 STORE = 6  # pointer of store pit
+
+
 class Board:
     def __init__(self):
         # 6 pits per player (each with 4 stones initially), and 2 stores (Mancalas) for players.
@@ -22,6 +25,13 @@ class Board:
     def switch_turns(self):
         # Switch turns between players
         self.turn = 1 - self.turn
+
+    def valid_moves(self):
+        valid_moves = list()
+        for move in range(STORE):
+            if self.is_valid_move(move):
+                valid_moves.append(move)
+        return valid_moves
 
     def is_valid_move(self, pit_index):
         # Checks if the pit chosen by the player is valid (i.e., it must contain stones)
@@ -59,7 +69,8 @@ class Board:
                 stones -= 1
 
         # 3. take opponent stones if land on empty in own side
-        if side == current_player and self.pits[side][pit_index] == 1 and not finish_in_store:  # last stone was put in empty pit
+        if (side == current_player and self.pits[side][pit_index] == 1
+                and not finish_in_store):  # last stone was put in empty pit
             self.pits[side][STORE] += self.pits[1-side][5 - pit_index] + 1  # opposite stones + last own stone
             self.pits[1 - side][5 - pit_index] = 0
             self.pits[side][pit_index] = 0
@@ -99,7 +110,8 @@ class Game:
     def __init__(self):
         self.board = Board()
         self.players = ["Player 1", "Player 2"]
-        self.player = player_human.Human()
+        # self.player = player_human.Player()
+        self.player = player_random.Player()
 
     def play_move(self, pit_index):
         # First, check if the move is valid

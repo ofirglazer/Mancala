@@ -1,20 +1,21 @@
 
-class Human():
+class Player():
     def __init__(self, name="human"):
         self.name = name
     def act(self, board):
-        # TODO choose between legal moves
         current_player = board.turn + 1  # +1 so it will how 1/2 instead of 0/1
+        valid_moves = board.valid_moves()
+        print(f"Player {current_player} [{self.name}] valid moves are {[move + 1 for move in valid_moves]}")
         while True:
             try:
-                pit_index = int(input(f"Choose a pit (1-6) to sow for player {current_player}: ")) - 1
-                if not 0 <= pit_index < 6:
+                pit_index = int(input(f"Choose a valid pit to sow: ")) - 1
+                if pit_index not in valid_moves:
                     raise ValueError("Invalid pit number.")
                 return pit_index
             except ValueError:
-                print("Invalid input. Please enter an integer between 1 and 6.")
+                print(f"Invalid input. Please enter an integer from {[move + 1 for move in valid_moves]}.")
 
 if __name__ == '__main__':
-    player = Human()
+    player = Player()
     print(f"Player selected pit {player.act(0)}")
 
