@@ -124,7 +124,7 @@ class Game:
             self.players.append(player_human.Player())
         elif player1 == 'random':
             self.players.append(player_random.Player())
-        elif player0 == 'minmax':
+        elif player1 == 'minmax':
             self.players.append(player_minmax.Player(1))
         else:
             raise Exception('Incorrect player1 type')
@@ -169,7 +169,7 @@ class Game:
 
 def main():
     to_draw = True
-    game = Game('minmax', 'random')
+    game = Game('human', 'minmax')
     game.play_game(to_draw)
 
 

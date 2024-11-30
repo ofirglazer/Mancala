@@ -29,14 +29,30 @@ class Player():
     return v
     """
 
-    def __init__(self, player, name="minmax",depth=3):
+    def __init__(self, player, name="minmax", max_depth=7):
         self.player = player
         self.name = name
-        self.depth = depth
+        self.max_depth = max_depth
 
-    def minmax_eval(self, board):
-        # TODO add score if it remains player turn
-        return board.pits[self.player][STORE] - board.pits[1 - self.player][STORE]
+    def minmax_eval(self, board, depth=None):
+        if depth == None:
+            depth = self.max_depth
+        if board.check_game_over() or depth == 0:
+            # TODO add score if it remains player turn
+            return board.pits[self.player][STORE] - board.pits[1 - self.player][STORE]
+
+        if board.turn == 0:
+            score = -50
+            for move in board.valid_moves():
+                score = max(score, self.minmax_eval(self.result(board, move), depth - 1))
+                print(f"Player 0, move {move}, score {score}")
+        else:
+            score = 50
+            for move in board.valid_moves():
+                score = min(score, self.minmax_eval(self.result(board, move), depth - 1))
+                print(f"Player 0, move {move}, score {score}")
+        print(f"Best score is {score}")
+        return score
 
     def result(self, board, move):
         """
@@ -61,11 +77,11 @@ class Player():
         evaluated_moves = []
         for move in valid_moves:
             board_after_optional_move = self.result(board, move)
-            evaluated_moves.append([move, self.minmax_eval(board_after_optional_move)])  # result(board, action)
+            evaluated_moves.append([move, self.minmax_eval(board_after_optional_move, self.max_depth)])  # result(board, action)
 
-        if board.turn == self.player:
-            # player turn, return max
+        if current_player == 0:
+            # player 0, return max
             return max(evaluated_moves, key=lambda s: s[1])[0]
         else:
-            # opponent turn, return min
+            # player 1, return min
             return min(evaluated_moves, key=lambda s: s[1])[0]
