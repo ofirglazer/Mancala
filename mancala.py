@@ -51,8 +51,8 @@ class Board:
         self.pits[side][pit_index] = 0  # Empty the selected pit
 
         # 2. put stones in next pits
+        finish_in_store = False
         while stones > 0:
-            finish_in_store = False
             pit_index = (pit_index + 1) % 7  # Move to the next pit
             if pit_index == 0:
                 side = 1 - side  # switch to other side after roll over to pit 0
@@ -129,7 +129,6 @@ class Game:
         else:
             raise Exception('Incorrect player1 type')
 
-
     def play_move(self, pit_index):
         # First, check if the move is valid
         if not self.board.is_valid_move(pit_index):
@@ -169,7 +168,7 @@ class Game:
 
 def main():
     to_draw = True
-    game = Game('human', 'minmax')
+    game = Game('minmax', 'minmax')
     game.play_game(to_draw)
 
 
