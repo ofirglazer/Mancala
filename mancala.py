@@ -1,5 +1,7 @@
+import player_minmax
 import player_human
 import player_random
+
 
 STORE = 6  # pointer of store pit
 
@@ -49,8 +51,8 @@ class Board:
         self.pits[side][pit_index] = 0  # Empty the selected pit
 
         # 2. put stones in next pits
+        finish_in_store = False
         while stones > 0:
-            finish_in_store = False
             pit_index = (pit_index + 1) % 7  # Move to the next pit
             if pit_index == 0:
                 side = 1 - side  # switch to other side after roll over to pit 0
@@ -114,15 +116,18 @@ class Game:
             self.players.append(player_human.Player())
         elif player0 == 'random':
             self.players.append(player_random.Player())
+        elif player0 == 'minmax':
+            self.players.append(player_minmax.Player(0))
         else:
             raise Exception('Incorrect player0 type')
         if player1 == 'human':
             self.players.append(player_human.Player())
         elif player1 == 'random':
             self.players.append(player_random.Player())
+        elif player1 == 'minmax':
+            self.players.append(player_minmax.Player(1))
         else:
             raise Exception('Incorrect player1 type')
-
 
     def play_move(self, pit_index):
         # First, check if the move is valid
@@ -158,12 +163,12 @@ class Game:
             if self.play_move(pit_index):
                 print("Game Over!")
                 print(self.get_winner())
-                break
+                return self.board.get_board_state()
 
 
 def main():
     to_draw = True
-    game = Game('random', 'random')
+    game = Game('minmax', 'minmax')
     game.play_game(to_draw)
 
 
