@@ -1,5 +1,5 @@
 import copy
-from mancala import STORE
+STORE = 6  # pointer of store pit
 
 
 def result(board, move):
@@ -43,7 +43,7 @@ class Player:
     return v
     """
 
-    def __init__(self, player, name="minmax", max_depth=2):
+    def __init__(self, player, name="minmax", max_depth=7):
         self.player = player
         self.name = name
         self.max_depth = max_depth
@@ -53,19 +53,21 @@ class Player:
             depth = self.max_depth
         if board.check_game_over() or depth == 0:
             # TODO add score if it remains player turn
-            return board.pits[self.player][STORE] - board.pits[1 - self.player][STORE]
+            return board.pits[0][STORE] - board.pits[1][STORE]
 
         if board.turn == 0:
             score = -50
             for move in board.valid_moves():
+                # print(f"Depth {depth}, Player 0, move {move}, checking Player 1 moves")
                 score = max(score, self.minmax_eval(result(board, move), depth - 1))
-                print(f"Player 0, move {move}, score {score}")
+                # print(f"Depth {depth}, Player 0, move {move}, score {score}")
         else:
             score = 50
             for move in board.valid_moves():
+                # print(f"Depth {depth}, Player 1, move {move}, checking Player 0 moves")
                 score = min(score, self.minmax_eval(result(board, move), depth - 1))
-                print(f"Player 0, move {move}, score {score}")
-        print(f"Best score is {score}")
+                # print(f"Depth {depth}, Player 1, move {move}, score {score}")
+        # print(f"Best score is {score}")
         return score
 
     def act(self, board):

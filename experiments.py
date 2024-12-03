@@ -5,8 +5,8 @@ from mancala import STORE
 def main(n_games=5):
     wins = [0, 0, 0]  # wins player 1, wins player 2, ties
     to_draw = False
-    for iGame in range(n_games):
-        game = Game('random', 'random')
+    for _ in range(n_games):
+        game = Game('minmax', 'minmax')
         end_state = game.play_game(to_draw)
         if end_state[STORE] > end_state[STORE * 2 + 1]:
             wins[0] += 1
